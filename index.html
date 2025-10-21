@@ -3,50 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adivinhe a Nota Misteriosa</title>
+    <title>Treinamento Auditivo Musical</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             padding: 20px;
             background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
+
+        /* Container principal do App */
+        .app-container {
+            max-width: 500px;
+            width: 90%;
             background: white;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
-        h1 {
-            color: #333;
+
+        /* Estilos para o placar */
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 25px;
+            font-size: 1.1em;
         }
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            border: none;
+        .score-board .score-item {
+            font-weight: bold;
+            padding: 5px 10px;
             border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
         }
+        .score-board #acertos {
+            color: green;
+            border: 1px solid green;
+        }
+        .score-board #erros {
+            color: red;
+            border: 1px solid red;
+        }
+
+
+        /* Estilos para a caixa de áudio da pergunta */
+        .audio-box {
+            background-color: #f8f8f8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .question-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* Barra de progresso (simulada) */
+        .progress-bar-container {
+            flex-grow: 1; 
+            height: 8px;
+            background-color: #e0e0e0;
+            margin: 0 10px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            width: 100%; 
+            height: 100%;
+            background-color: #495057; /* Cinza escuro para combinar */
+        }
+
+        /* Botão principal de Play */
         #playMisteriosa {
-            background-color: #28a745;
-            color: white;
+            padding: 10px 15px;
+            font-size: 18px;
+            background-color: transparent;
+            color: #333;
+            border: none; 
+            cursor: pointer;
         }
-        #confirmar {
-            background-color: #007bff;
-            color: white;
+        
+        /* Layout dos botões de nota em Grid de 2 colunas */
+        .nota-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            margin-top: 20px;
         }
+        
+        /* Estilo dos botões de nota */
         .nota-buttons button {
             background-color: #e9ecef;
             color: #333;
-            width: 70px;
+            height: 60px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            padding: 0;
+            width: 100%;
         }
-        .nota-buttons button:hover {
-            background-color: #ced4da;
+
+        /* MUDANÇA AQUI: Estilo para a nota selecionada (CINZA) */
+        .nota-buttons button.selected {
+            background-color: #adb5bd; /* Cinza claro */
+            color: white;             /* Texto branco para contraste */
+            border: 1px solid #6c757d; 
+            transform: scale(1.02);   
         }
+
+        /* NOVO BOTÃO: Confirmar */
+        #confirmar {
+            width: 100%;
+            padding: 15px;
+            background-color: #28a745; /* Verde para ação de confirmação */
+            color: white;
+            font-size: 1.2em;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        /* Feedback de acerto/erro */
         #feedback {
             margin-top: 20px;
             font-size: 1.2em;
@@ -55,145 +137,187 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Adivinhe a Nota</h1>
+    <div class="app-container">
+        <div class="score-board">
+            <div class="score-item" id="acertos">Acertos: 0</div>
+            <div class="score-item" id="erros">Erros: 0</div>
+        </div>
+
+        <div class="audio-box">
+            <div class="question-bar">
+                <button id="playMisteriosa">▶️</button>
+                
+                <div class="progress-bar-container">
+                    <div class="progress-bar"></div>
+                </div>
+                
+                <span id="question-label">?</span>
+            </div>
+            <span style="display: block; text-align: left; margin-top: 5px;">Question Note</span>
+        </div>
         
-        <p>
-            <button id="playMisteriosa">🎶 Tocar Nota Misteriosa</button>
-        </p>
-
-        <h2>Escolha a Nota</h2>
         <div class="nota-buttons">
-            <button data-nota="C4">Dó (C4)</button>
-            <button data-nota="D4">Ré (D4)</button>
-            <button data-nota="E4">Mi (E4)</button>
-            <button data-nota="F4">Fá (F4)</button>
-            <button data-nota="G4">Sol (G4)</button>
-            <button data-nota="A4">Lá (A4)</button>
-            <button data-nota="B4">Si (B4)</button>
-            <button data-nota="C5">Dó (C5)</button>
+            <button data-nota="C4">C</button>
+            <button data-nota="D4">D</button>
+            <button data-nota="E4">E</button>
+            <button data-nota="F4">F</button>
+            <button data-nota="G4">G</button>
+            <button data-nota="A4">A</button>
+            <button data-nota="B4">B</button>
         </div>
-        </div>
+        
+        <button id="confirmar">✅ Confirmar</button>
 
-        <p style="margin-top: 20px;">
-            <button id="confirmar">✅ Confirmar Escolha</button>
+        <div id="feedback">Toque em ▶️ para começar!</div>
+
+        <p style="font-size: 0.8em; color: #666; margin-top: 20px;">
+            Treino de ouvido musical.
         </p>
-
-        <div id="feedback"></div>
     </div>
 
     <script>
-        // VARIÁVEIS DE ESTADO
+        // NOVAS VARIÁVEIS DE PONTUAÇÃO
+        let acertos = 0;
+        let erros = 0;
         let notaMisteriosa = null;
         let escolhaUsuario = null;
+        let rodadaAtiva = false; // Flag para saber se o jogo está esperando uma resposta
 
-        // VARIÁVEIS DA WEB AUDIO API (Tecnologia que gera o som)
+        // Variáveis do DOM para atualização
+        const feedback = document.getElementById('feedback');
+        const acertosDisplay = document.getElementById('acertos');
+        const errosDisplay = document.getElementById('erros');
+        const playButton = document.getElementById('playMisteriosa');
+        const confirmarButton = document.getElementById('confirmar'); // NOVO
+        const allNoteButtons = document.querySelectorAll('.nota-buttons button');
+
+        // WEB AUDIO API
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        // O AudioContext precisa ser iniciado por uma interação do usuário
         const audioCtx = new AudioContext();
 
-        // Array de notas que o jogo vai usar (de C4 a C5)
-        const notas = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
-
-        // Mapeamento Nota -> Frequência em Hertz (Padrão A4 = 440Hz)
+        const notas = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4']; // 7 notas
         const freqMap = {
             'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23,
-            'G4': 392.00, 'A4': 440.00, 'B4': 493.88, 'C5': 523.25
+            'G4': 392.00, 'A4': 440.00, 'B4': 493.88
         };
 
-        /**
-         * Função que gera o som da nota utilizando a Web Audio API.
-         * Garante que o som será reproduzido.
-         */
+        // Função de áudio (mantida)
         async function tocarNota(nota) {
             const frequency = freqMap[nota];
+            if (!frequency) return;
 
-            if (!frequency) {
-                console.error(`Frequência não encontrada para a nota: ${nota}`);
-                return;
-            }
-
-            // 1. Cria o Oscilador (fonte do som) e Ganho (volume)
+            // ... (Lógica do Web Audio API) ...
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
-
-            // Configuração
-            oscillator.type = 'sine'; // Onda senoidal (som puro)
+            oscillator.type = 'sine'; 
             oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-
-            // Envelope ADSR simplificado (para um som mais agradável)
-            const duration = 0.5; // Duração total em segundos
+            const duration = 0.5;
             const attackTime = 0.01;
-            
-            gainNode.gain.setValueAtTime(0, audioCtx.currentTime); // Inicia em silêncio
-            gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + attackTime); // Ataque
-            gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration); // Release
-
-            // Conexão
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime); 
+            gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + attackTime); 
+            gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration); 
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
-
-            // Inicia e para o som (garante o fim do áudio)
             oscillator.start(audioCtx.currentTime);
             oscillator.stop(audioCtx.currentTime + duration + 0.05);
 
-            // Aguarda o fim da nota
             return new Promise(resolve => {
                 setTimeout(resolve, (duration + 0.1) * 1000);
             });
         }
+        
+        // Função para atualizar o placar
+        function atualizarPlacar() {
+            acertosDisplay.textContent = `Acertos: ${acertos}`;
+            errosDisplay.textContent = `Erros: ${erros}`;
+        }
+        
+        // Inicia ou repete a rodada
+        function iniciarRodada() {
+            // Gera uma nova nota misteriosa e limpa o estado
+            notaMisteriosa = notas[Math.floor(Math.random() * notas.length)];
+            escolhaUsuario = null;
+            rodadaAtiva = true;
+            
+            feedback.textContent = 'Qual é a nota? Selecione sua resposta.';
+            allNoteButtons.forEach(btn => btn.classList.remove('selected')); // Limpa seleção
+            
+            tocarNota(notaMisteriosa);
+            playButton.textContent = '🔁'; // Indica que agora repete
+            confirmarButton.disabled = false; // Habilita o confirmar
+        }
 
         // ------------------------------------------------------------------
-        // LÓGICA DE INTERAÇÃO (Seu código original, agora com a Web Audio API)
+        // LÓGICA DE INTERAÇÃO
         // ------------------------------------------------------------------
 
-        // Botão Play Nota Misteriosa
-        document.getElementById('playMisteriosa').addEventListener('click', async () => {
-            // Desuspender o contexto de áudio em um evento do usuário é crucial
+        // Botão Play/Repetir Rodada
+        playButton.addEventListener('click', async () => {
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
-
-            if (!notaMisteriosa) {
-                notaMisteriosa = notas[Math.floor(Math.random() * notas.length)];
+            if (!rodadaAtiva) {
+                iniciarRodada();
+            } else {
+                await tocarNota(notaMisteriosa); // Repete a nota
             }
-            await tocarNota(notaMisteriosa);
-            document.getElementById('feedback').textContent = '';
-            escolhaUsuario = null;
         });
 
-        // Botões de notas (para ouvir e escolher)
-        document.querySelectorAll('.nota-buttons button').forEach(button => {
+
+        // Botões de notas (Apenas Seleção)
+        allNoteButtons.forEach(button => {
             button.addEventListener('click', async () => {
-                // Desuspender o contexto de áudio
                 if (audioCtx.state === 'suspended') {
                     audioCtx.resume();
                 }
 
                 const nota = button.getAttribute('data-nota');
                 await tocarNota(nota);
+                
+                // Lógica de Seleção: Deixa o botão clicado em CINZA
+                allNoteButtons.forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                button.classList.add('selected');
+
+                // Armazena a escolha, mas NÃO CONFIRMA
                 escolhaUsuario = nota;
+                feedback.textContent = `Nota ${nota.slice(0, 1)} selecionada. Clique em CONFIRMAR.`;
             });
         });
-
-        // Botão Confirmar
-        document.getElementById('confirmar').addEventListener('click', () => {
-            if (!notaMisteriosa) {
-                document.getElementById('feedback').textContent = 'Primeiro, toque a nota misteriosa!';
+        
+        // NOVO EVENTO: Botão Confirmar (Verificação)
+        confirmarButton.addEventListener('click', () => {
+            if (!rodadaAtiva) {
+                feedback.textContent = 'Toque em ▶️ para começar a rodada.';
                 return;
             }
             if (!escolhaUsuario) {
-                document.getElementById('feedback').textContent = 'Escolha uma nota primeiro!';
+                feedback.textContent = 'Por favor, selecione uma nota primeiro.';
                 return;
             }
+
+            // Lógica de Confirmação e Pontuação
             if (escolhaUsuario === notaMisteriosa) {
-                document.getElementById('feedback').textContent = 'Acertou! 🎉';
+                feedback.textContent = 'Acertou! ✅ Toque em ▶️ para a próxima nota!';
+                acertos++;
+                rodadaAtiva = false; // Encerra a rodada
+                playButton.textContent = '▶️'; // Volta o ícone para Play (nova rodada)
             } else {
-                document.getElementById('feedback').textContent = `Errou! Era ${notaMisteriosa}.`;
+                feedback.textContent = `Errou. ❌ A nota era ${notaMisteriosa.slice(0, 1)}. Toque em ▶️ para a próxima.`;
+                erros++;
+                rodadaAtiva = false; // Encerra a rodada após a revelação
+                playButton.textContent = '▶️';
+                // Opcional: destaque a nota correta em verde aqui antes de resetar
             }
-            // Reseta para começar uma nova rodada
-            notaMisteriosa = null;
+            
+            confirmarButton.disabled = true;
+            atualizarPlacar();
         });
+
+
+        // Inicializa o placar
+        atualizarPlacar();
     </script>
 </body>
 </html>
