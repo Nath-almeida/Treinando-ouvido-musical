@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adivinhe a Nota Misteriosa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        #playMisteriosa {
+            background-color: #28a745;
+            color: white;
+        }
+        #confirmar {
+            background-color: #007bff;
+            color: white;
+        }
+        .nota-buttons button {
+            background-color: #e9ecef;
+            color: #333;
+            width: 70px;
+        }
+        .nota-buttons button:hover {
+            background-color: #ced4da;
+        }
+        #feedback {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Adivinhe a Nota</h1>
+        
+        <p>
+            <button id="playMisteriosa">🎶 Tocar Nota Misteriosa</button>
+        </p>
+
+        <h2>Escolha a Nota</h2>
+        <div class="nota-buttons">
+            <button data-nota="C4">Dó (C4)</button>
+            <button data-nota="D4">Ré (D4)</button>
+            <button data-nota="E4">Mi (E4)</button>
+            <button data-nota="F4">Fá (F4)</button>
+            <button data-nota="G4">Sol (G4)</button>
+            <button data-nota="A4">Lá (A4)</button>
+            <button data-nota="B4">Si (B4)</button>
+            <button data-nota="C5">Dó (C5)</button>
+        </div>
+        </div>
+
+        <p style="margin-top: 20px;">
+            <button id="confirmar">✅ Confirmar Escolha</button>
+        </p>
+
+        <div id="feedback"></div>
+    </div>
+
+    <script>
+        // VARIÁVEIS DE ESTADO
+        let notaMisteriosa = null;
+        let escolhaUsuario = null;
+
+        // VARIÁVEIS DA WEB AUDIO API (Tecnologia que gera o som)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        // O AudioContext precisa ser iniciado por uma interação do usuário
+        const audioCtx = new AudioContext();
+
+        // Array de notas que o jogo vai usar (de C4 a C5)
+        const notas = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'];
+
+        // Mapeamento Nota -> Frequência em Hertz (Padrão A4 = 440Hz)
+        const freqMap = {
+            'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23,
+            'G4': 392.00, 'A4': 440.00, 'B4': 493.88, 'C5': 523.25
+        };
+
+        /**
+         * Função que gera o som da nota utilizando a Web Audio API.
+         * Garante que o som será reproduzido.
+         */
+        async function tocarNota(nota) {
+            const frequency = freqMap[nota];
+
+            if (!frequency) {
+                console.error(`Frequência não encontrada para a nota: ${nota}`);
+                return;
+            }
+
+            // 1. Cria o Oscilador (fonte do som) e Ganho (volume)
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            // Configuração
+            oscillator.type = 'sine'; // Onda senoidal (som puro)
+            oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+
+            // Envelope ADSR simplificado (para um som mais agradável)
+            const duration = 0.5; // Duração total em segundos
+            const attackTime = 0.01;
+            
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime); // Inicia em silêncio
+            gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + attackTime); // Ataque
+            gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration); // Release
+
+            // Conexão
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            // Inicia e para o som (garante o fim do áudio)
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + duration + 0.05);
+
+            // Aguarda o fim da nota
+            return new Promise(resolve => {
+                setTimeout(resolve, (duration + 0.1) * 1000);
+            });
+        }
+
+        // ------------------------------------------------------------------
+        // LÓGICA DE INTERAÇÃO (Seu código original, agora com a Web Audio API)
+        // ------------------------------------------------------------------
+
+        // Botão Play Nota Misteriosa
+        document.getElementById('playMisteriosa').addEventListener('click', async () => {
+            // Desuspender o contexto de áudio em um evento do usuário é crucial
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (!notaMisteriosa) {
+                notaMisteriosa = notas[Math.floor(Math.random() * notas.length)];
+            }
+            await tocarNota(notaMisteriosa);
+            document.getElementById('feedback').textContent = '';
+            escolhaUsuario = null;
+        });
+
+        // Botões de notas (para ouvir e escolher)
+        document.querySelectorAll('.nota-buttons button').forEach(button => {
+            button.addEventListener('click', async () => {
+                // Desuspender o contexto de áudio
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                const nota = button.getAttribute('data-nota');
+                await tocarNota(nota);
+                escolhaUsuario = nota;
+            });
+        });
+
+        // Botão Confirmar
+        document.getElementById('confirmar').addEventListener('click', () => {
+            if (!notaMisteriosa) {
+                document.getElementById('feedback').textContent = 'Primeiro, toque a nota misteriosa!';
+                return;
+            }
+            if (!escolhaUsuario) {
+                document.getElementById('feedback').textContent = 'Escolha uma nota primeiro!';
+                return;
+            }
+            if (escolhaUsuario === notaMisteriosa) {
+                document.getElementById('feedback').textContent = 'Acertou! 🎉';
+            } else {
+                document.getElementById('feedback').textContent = `Errou! Era ${notaMisteriosa}.`;
+            }
+            // Reseta para começar uma nova rodada
+            notaMisteriosa = null;
+        });
+    </script>
+</body>
+</html>
